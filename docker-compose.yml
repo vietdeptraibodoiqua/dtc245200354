@@ -1,0 +1,129 @@
+services:
+  hotel-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hotel-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    env_file:
+      - .env
+    networks:
+      - hotel_internal
+      - novera_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.60'
+          memory: 350M
+
+  hotel-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hotel-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:80"
+    networks:
+      - hotel_internal
+      - novera_network
+    depends_on:
+      - hotel-backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 150M
+
+  hotel-prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: hotel-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - hotel_internal
+      - novera_network
+    depends_on:
+      - hotel-backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 200M
+
+  hotel-loki:
+    image: grafana/loki:2.9.8
+    container_name: hotel-loki
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - hotel_internal
+      - novera_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 250M
+
+  hotel-promtail:
+    image: grafana/promtail:2.9.8
+    container_name: hotel-promtail
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - hotel_internal
+      - novera_network
+    depends_on:
+      - hotel-loki
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 150M
+
+  hotel-grafana:
+    image: grafana/grafana:10.4.2
+    container_name: hotel-grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=AdminSecure2026!
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - hotel_internal
+      - novera_network
+    depends_on:
+      - hotel-prometheus
+      - hotel-loki
+    deploy:
+      resources:
+        limits:
+          cpus: '0.35'
+          memory: 250M
+
+networks:
+  hotel_internal:
+    driver: bridge
+  novera_network:
+    external: true

@@ -1,0 +1,42 @@
+# Environment & Secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.cert
+
+# Node dependencies & logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Observability persistent data
+monitoring/loki/data/
+monitoring/prometheus/data/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Reports, Scratch Scripts & Academic Raw Docs
+docs/
+scripts/
+*.docx
+*.pdf
+grafana_dashboard_import.json
+Hình*.png
+
+# Internal AI Agent instructions & Context
+.agent/
+context.md
