@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     check_in_date DATE NOT NULL,
     check_out_date DATE NOT NULL,
     total_price_vnd NUMERIC(14, 0) NOT NULL CHECK (total_price_vnd >= 0),
-    status VARCHAR(30) NOT NULL DEFAULT 'CONFIRMED' CHECK (status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED')),
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED')),
     special_requests TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_booking_dates CHECK (check_out_date > check_in_date)
@@ -55,6 +55,22 @@ CREATE TABLE IF NOT EXISTS booking_rooms (
     UNIQUE(booking_id, room_id)
 );
 
+CREATE TABLE IF NOT EXISTS payment_transactions (
+    id SERIAL PRIMARY KEY,
+    transaction_id BIGINT UNIQUE NOT NULL,
+    booking_id INT REFERENCES bookings(id) ON DELETE SET NULL,
+    booking_code VARCHAR(50),
+    gateway VARCHAR(50) DEFAULT 'MBBank',
+    account_number VARCHAR(50),
+    transfer_amount NUMERIC(14, 0) NOT NULL,
+    transfer_type VARCHAR(10) DEFAULT 'in',
+    content TEXT,
+    reference_code VARCHAR(100),
+    transaction_date TIMESTAMP WITH TIME ZONE,
+    raw_payload JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_rooms_status ON rooms(status);
 CREATE INDEX IF NOT EXISTS idx_rooms_room_type ON rooms(room_type_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_dates ON bookings(check_in_date, check_out_date);
@@ -62,3 +78,5 @@ CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
 CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
 CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+CREATE INDEX IF NOT EXISTS idx_payment_tx_booking_code ON payment_transactions(booking_code);
+CREATE INDEX IF NOT EXISTS idx_payment_tx_id ON payment_transactions(transaction_id);

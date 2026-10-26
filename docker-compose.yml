@@ -1,4 +1,31 @@
 services:
+  hotel-postgres:
+    image: postgres:16-alpine
+    container_name: hotel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hotel_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - hotel_pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - hotel_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-hotel_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+
   hotel-backend:
     build:
       context: ./backend
@@ -12,6 +39,9 @@ services:
     networks:
       - hotel_internal
       - novera_network
+    depends_on:
+      hotel-postgres:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -37,6 +67,30 @@ services:
           cpus: '0.30'
           memory: 150M
 
+  hotel-node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: hotel-node-exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "127.0.0.1:9100:9100"
+    networks:
+      - hotel_internal
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 64M
+
   hotel-prometheus:
     image: prom/prometheus:v2.51.2
     container_name: hotel-prometheus
@@ -45,11 +99,13 @@ services:
       - "127.0.0.1:9090:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - hotel_prometheus_data:/prometheus
     networks:
       - hotel_internal
       - novera_network
     depends_on:
       - hotel-backend
+      - hotel-node-exporter
     deploy:
       resources:
         limits:
@@ -101,15 +157,17 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=AdminSecure2026!
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_ROOT_URL=http://localhost:3000/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - hotel_grafana_data:/var/lib/grafana
     networks:
       - hotel_internal
       - novera_network
@@ -120,10 +178,18 @@ services:
       resources:
         limits:
           cpus: '0.35'
-          memory: 250M
+          memory: 300M
 
 networks:
   hotel_internal:
     driver: bridge
   novera_network:
-    external: true
+    driver: bridge
+
+volumes:
+  hotel_pgdata:
+    driver: local
+  hotel_prometheus_data:
+    driver: local
+  hotel_grafana_data:
+    driver: local

@@ -3,10 +3,12 @@ INSERT INTO room_types (code, name, base_price_vnd, capacity_adults, capacity_ch
 ('SUP', 'Superior Garden View', 1250000, 2, 1, 'Phòng cao cấp ngập tràn ánh sáng tự nhiên với ban công ngắm nhìn hoa viên xanh mát, không gian thoáng đãng.', '["Ban công riêng", "Bồn tắm nằm", "Wifi tốc độ cao", "Minibar", "Áo choàng tắm", "Két sắt an toàn"]'::jsonb, '/images/room-sup.jpg'),
 ('DLX', 'Deluxe Ocean Panorama', 1950000, 3, 2, 'Phòng hạng sang có cửa kính vòm mở rộng tầm nhìn toàn cảnh biển, sofa thư giãn sang trọng và giường King cao cấp.', '["View toàn cảnh biển", "Giường King cỡ lớn", "Bồn tắm Jacuzzi", "Máy pha cà phê Nespresso", "Bữa sáng buffet"]'::jsonb, '/images/room-dlx.jpg'),
 ('SUT', 'Executive Suite Luxury', 3200000, 4, 2, 'Căn hộ Suite thượng lưu phân chia phòng khách và phòng ngủ riêng biệt, nội thất gỗ óc chó tinh xảo và tiện ích VIP.', '["Phòng khách riêng", "Bàn làm việc doanh nhân", "Dịch vụ quản gia 24/7", "Check-in sớm/muộn", "Lối vào Executive Lounge"]'::jsonb, '/images/room-sut.jpg'),
-('PRS', 'Presidential Royal Suite', 6800000, 6, 3, 'Dinh thự trên cao đỉnh cao vương giả, tầm nhìn 360 độ, phòng ăn riêng, quầy bar cá nhân và hệ thống âm thanh vòm cao cấp.', '["2 Phòng ngủ Master", "Bếp & Phòng ăn riêng", "Rạp chiếu phim mini", "Bảo vệ riêng", "Đưa đón xe Limousine"]'::jsonb, '/images/room-prs.jpg')
+('PRS', 'Presidential Royal Suite', 6800000, 6, 3, 'Dinh thự trên cao đỉnh cao vương giả, tầm nhìn 360 độ, phòng ăn riêng, quầy bar cá nhân và hệ thống âm thanh vòm cao cấp.', '["2 Phòng ngủ Master", "Bếp & Phòng ăn riêng", "Rạp chiếu phim mini", "Bảo vệ riêng", "Đưa đón xe Limousine"]'::jsonb, '/images/room-prs.jpg'),
+('TST', 'Phòng Thử Nghiệm Thanh Toán (10.000đ)', 10000, 2, 1, 'Phòng chuyên biệt dùng thử nghiệm chuyển khoản VietQR MB Bank, Cổng NAPAS và Thẻ quốc tế với chi phí chỉ 10.000 VNĐ / đêm.', '["Phí kiểm thử 10.000đ", "VietQR MB Bank tự động", "Cổng SePay NAPAS / Thẻ", "Xác nhận tức thì thời gian thực"]'::jsonb, '/images/room-std.jpg')
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO rooms (room_number, room_type_id, floor, status, notes) VALUES
+('P.100', 6, 1, 'AVAILABLE', 'Phòng thử nghiệm chuyển khoản 10.000 VNĐ'),
 ('P.101', 1, 1, 'AVAILABLE', 'Gần sảnh chính và khu vực đón trả khách'),
 ('P.102', 1, 1, 'AVAILABLE', 'Yên tĩnh, phù hợp nghỉ ngơi'),
 ('P.103', 1, 1, 'OCCUPIED', 'Khách check-in sáng nay'),
@@ -26,11 +28,12 @@ INSERT INTO rooms (room_number, room_type_id, floor, status, notes) VALUES
 ('P.402', 4, 4, 'AVAILABLE', 'Executive Suite hướng biển'),
 ('P.403', 4, 4, 'OCCUPIED', 'Đoàn chuyên gia nước ngoài'),
 ('P.404', 4, 4, 'AVAILABLE', 'Nội thất vừa được làm mới'),
-('P.405', 5, 4, 'AVAILABLE', 'Phòng Tổng thống độc bản')
+('P.405', 5, 4, 'AVAILABLE', 'Phòng Tổng thống độc bản'),
+('P.999', 6, 9, 'AVAILABLE', 'Phòng thử nghiệm chuyển khoản 10.000 VNĐ')
 ON CONFLICT (room_number) DO NOTHING;
 
 INSERT INTO customers (full_name, id_card, phone, email, address) VALUES
-('Lường Minh Hiếu', '019200008853', '0988776655', 'hieu.luong@noveratech.digital', 'TP. Thái Nguyên, Thái Nguyên'),
+('Nguyễn Hoàng Việt', '019200000384', '0988776655', 'viet.nguyen@noveratech.digital', 'TP. Thái Nguyên, Thái Nguyên'),
 ('Nguyễn Hoàng Nam', '001201004567', '0912345678', 'nam.nguyen@gmail.com', 'Hoàn Kiếm, Hà Nội'),
 ('Trần Thị Mai', '079198009876', '0933221100', 'mai.tran@yahoo.com', 'Quận 1, TP. Hồ Chí Minh'),
 ('Lê Văn Quân', '048202001122', '0977889900', 'quan.le@techcorp.vn', 'Hải Châu, Đà Nẵng')

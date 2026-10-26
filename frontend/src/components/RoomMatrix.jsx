@@ -1,77 +1,131 @@
 import React from 'react';
-import { Bed, User, Wrench } from 'lucide-react';
+import { Bed, Sparkles, Check, AlertTriangle, Layers } from 'lucide-react';
 
-export default function RoomMatrix({ floorMatrix, onUpdateRoomStatus }) {
-  const statusStyles = {
-    AVAILABLE: 'bg-emerald-50 border-emerald-200 text-emerald-900',
-    OCCUPIED: 'bg-rose-50 border-rose-200 text-rose-900',
-    MAINTENANCE: 'bg-amber-50 border-amber-200 text-amber-900',
-    CLEANING: 'bg-sky-50 border-sky-200 text-sky-900'
+export default function RoomMatrix({ rooms = [], onSelectRoom, onToggleStatus }) {
+  const floors = [4, 3, 2, 1];
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'AVAILABLE':
+        return 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/20';
+      case 'BOOKED':
+      case 'OCCUPIED':
+        return 'bg-blue-500/10 border-blue-500/30 text-blue-700 hover:bg-blue-500/20';
+      case 'MAINTENANCE':
+        return 'bg-amber-500/10 border-amber-500/30 text-amber-700 hover:bg-amber-500/20';
+      default:
+        return 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200';
+    }
   };
 
-  const statusLabels = {
-    AVAILABLE: 'Trống',
-    OCCUPIED: 'Đang ở',
-    MAINTENANCE: 'Bảo dưỡng',
-    CLEANING: 'Đang dọn'
+  const getStatusDot = (status) => {
+    switch (status) {
+      case 'AVAILABLE':
+        return 'bg-emerald-500';
+      case 'BOOKED':
+      case 'OCCUPIED':
+        return 'bg-blue-500';
+      case 'MAINTENANCE':
+        return 'bg-amber-500';
+      default:
+        return 'bg-slate-400';
+    }
   };
-
-  const floors = Object.keys(floorMatrix || {}).sort((a, b) => Number(b) - Number(a));
 
   return (
-    <div className="space-y-6">
-      {floors.map(floor => (
-        <div key={floor} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-slate-900" />
-              Tầng {floor}
-            </h3>
-            <span className="text-xs text-slate-500 font-medium">
-              {(floorMatrix[floor] || []).length} phòng
-            </span>
+    <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-amber-600 block">
+            Hệ Thống Phân Phối Buồng Phòng
+          </span>
+          <h3 className="font-serif text-2xl font-bold text-[#0B192C]">
+            Sơ Đồ Ma Trận Phòng (Room Matrix)
+          </h3>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-emerald-500" />
+            <span className="text-slate-700">Trống sẵn sàng</span>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {(floorMatrix[floor] || []).map(room => (
-              <div
-                key={room.id}
-                className={`p-3.5 rounded-lg border transition-all ${statusStyles[room.status] || 'bg-slate-50 border-slate-200 text-slate-800'}`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold">{room.room_number}</span>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-white/80 shadow-xs">
-                    {statusLabels[room.status] || room.status}
-                  </span>
-                </div>
-
-                <div className="text-xs space-y-1 mb-3">
-                  <div className="font-medium text-slate-600 truncate">{room.room_type_name}</div>
-                  {room.guest_name && (
-                    <div className="flex items-center gap-1 font-semibold text-rose-800 truncate">
-                      <User className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{room.guest_name}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-2 border-t border-black/5 flex items-center justify-between text-[11px]">
-                  <select
-                    value={room.status}
-                    onChange={(e) => onUpdateRoomStatus(room.id, e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded px-1.5 py-1 text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
-                  >
-                    <option value="AVAILABLE">Trống</option>
-                    <option value="OCCUPIED">Đang ở</option>
-                    <option value="MAINTENANCE">Bảo dưỡng</option>
-                    <option value="CLEANING">Đang dọn</option>
-                  </select>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-blue-500" />
+            <span className="text-slate-700">Đang có khách</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-amber-500" />
+            <span className="text-slate-700">Bảo trì / Dọn dẹp</span>
           </div>
         </div>
-      ))}
+      </div>
+
+      <div className="space-y-6">
+        {floors.map((floorNum) => {
+          const floorRooms = rooms.filter((r) => Number(r.floor) === floorNum);
+          if (floorRooms.length === 0) return null;
+
+          return (
+            <div key={floorNum} className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <Layers className="w-4 h-4 text-amber-500" />
+                <span>Tầng {floorNum} ({floorRooms.length} phòng)</span>
+                <div className="flex-1 h-px bg-slate-100 ml-2" />
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {floorRooms.map((room) => {
+                  const colorClass = getStatusColor(room.status);
+                  const dotColor = getStatusDot(room.status);
+                  const isAvailable = room.status === 'AVAILABLE';
+
+                  return (
+                    <div
+                      key={room.id}
+                      onClick={() => onSelectRoom && onSelectRoom(room)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative group flex flex-col justify-between ${colorClass}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-base font-bold text-slate-900">
+                          {room.room_number}
+                        </span>
+                        <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+                      </div>
+
+                      <div className="mt-2 space-y-0.5">
+                        <span className="text-[11px] font-semibold text-slate-700 block truncate">
+                          {room.type_name}
+                        </span>
+                        <span className="text-[10px] text-slate-500 block">
+                          {Number(room.base_price).toLocaleString('vi-VN')} đ
+                        </span>
+                      </div>
+
+                      <div className="mt-3 pt-2 border-t border-slate-200/50 flex items-center justify-between text-[11px]">
+                        <span className="text-[10px] font-medium text-slate-600">
+                          {isAvailable ? 'Sẵn sàng' : room.status === 'MAINTENANCE' ? 'Đang dọn' : 'Có khách'}
+                        </span>
+                        {onToggleStatus && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleStatus(room.id, isAvailable ? 'MAINTENANCE' : 'AVAILABLE');
+                            }}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700"
+                            title="Đổi trạng thái dọn phòng"
+                          >
+                            Đổi
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -5,7 +5,8 @@ const getRoomTypes = async (req, res, next) => {
     const roomTypes = await roomService.getRoomTypes();
     res.json({
       success: true,
-      data: roomTypes
+      data: roomTypes,
+      roomTypes
     });
   } catch (err) {
     next(err);
@@ -18,7 +19,8 @@ const getAllRooms = async (req, res, next) => {
     const rooms = await roomService.getAllRooms({ floor, status, roomTypeId });
     res.json({
       success: true,
-      data: rooms
+      data: rooms,
+      rooms
     });
   } catch (err) {
     next(err);
@@ -44,7 +46,8 @@ const searchAvailableRooms = async (req, res, next) => {
 
     res.json({
       success: true,
-      data: rooms
+      data: rooms,
+      rooms
     });
   } catch (err) {
     next(err);
@@ -67,6 +70,7 @@ const updateRoomStatus = async (req, res, next) => {
     res.json({
       success: true,
       data: updatedRoom,
+      room: updatedRoom,
       message: 'Cập nhật trạng thái phòng thành công'
     });
   } catch (err) {

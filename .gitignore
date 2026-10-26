@@ -32,11 +32,22 @@ Thumbs.db
 # Reports, Scratch Scripts & Academic Raw Docs
 docs/
 scripts/
+assets/
 *.docx
 *.pdf
+extracted_doc.txt
+Bao_Cao*.md
 grafana_dashboard_import.json
 Hình*.png
+*.png
+*.jpg
+*.jpeg
+*.py
+__pycache__/
+cookies.txt
+.playwright-mcp/
 
 # Internal AI Agent instructions & Context
 .agent/
 context.md
+

@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const generateBookingCode = () => {
   const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
   const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-  return `NVH-${dateStr}-${randomSuffix}`;
+  return `NVH${dateStr}${randomSuffix}`;
 };
 
 const createBooking = async (bookingData) => {
@@ -75,7 +75,7 @@ const createBooking = async (bookingData) => {
 
     const bookingInsertRes = await client.query(
       `INSERT INTO bookings (booking_code, customer_id, check_in_date, check_out_date, total_price_vnd, status, special_requests)
-       VALUES ($1, $2, $3, $4, $5, 'CONFIRMED', $6)
+       VALUES ($1, $2, $3, $4, $5, 'PENDING', $6)
        RETURNING *`,
       [bookingCode, customerRecord.id, checkInDate, checkOutDate, totalPriceVnd, specialRequests]
     );
